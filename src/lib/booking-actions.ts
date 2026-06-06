@@ -3,15 +3,6 @@ import { z } from "zod";
 import { supabase } from "./supabase";
 import { Resend } from "resend";
 
-// Setup Resend client
-const resendApiKey = process.env.RESEND_API_KEY;
-const ownerEmail = process.env.OWNER_EMAIL;
-// Resend default verified sender is onboarding@resend.dev. 
-// If the user configures a verified domain, they should set EMAIL_FROM to e.g. "Miss Hastag <noreply@yourdomain.com>"
-const emailFrom = process.env.EMAIL_FROM || "onboarding@resend.dev"; 
-
-const resend = resendApiKey ? new Resend(resendApiKey) : null;
-
 export const submitBookingAction = createServerFn({ method: "POST" })
   .input(
     z.object({
@@ -24,6 +15,11 @@ export const submitBookingAction = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     console.log("Processing booking request on server via Resend:", data);
+
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const ownerEmail = process.env.OWNER_EMAIL;
+    const emailFrom = process.env.EMAIL_FROM || "onboarding@resend.dev"; 
+    const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
     // 1. Honeypot check for spam/bots
     if (data.website && data.website.trim() !== "") {
