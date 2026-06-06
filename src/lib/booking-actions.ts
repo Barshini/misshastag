@@ -3,6 +3,81 @@ import { z } from "zod";
 import { supabase } from "./supabase";
 import nodemailer from "nodemailer";
 
+// Helper: Build a fully responsive HTML email template
+function buildResponsiveEmailHtml(title: string, contentHtml: string): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${title}</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          min-width: 100%;
+          width: 100% !important;
+          background-color: #f6f5f3;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          -webkit-font-smoothing: antialiased;
+        }
+        table {
+          border-spacing: 0;
+          border-collapse: collapse;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-container {
+            width: 100% !important;
+            padding: 20px !important;
+          }
+          .detail-table td {
+            display: block !important;
+            width: 100% !important;
+            box-sizing: border-box;
+            padding: 6px 0 !important;
+          }
+          .detail-table tr {
+            border-bottom: 1px solid #eaeaea;
+          }
+          .detail-table tr:last-child {
+            border-bottom: none;
+          }
+        }
+      </style>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f6f5f3;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f6f5f3; padding: 30px 0;">
+        <tr>
+          <td align="center">
+            <table border="0" cellpadding="0" cellspacing="0" class="email-container" width="100%" style="max-width: 600px; background-color: #ffffff; border: 1px solid #eaeaea; border-radius: 16px; overflow: hidden; padding: 40px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);">
+              <tr>
+                <td>
+                  <div style="text-align: center; border-bottom: 2px solid #62101e; padding-bottom: 20px; margin-bottom: 25px;">
+                    <span style="font-family: Georgia, serif; font-size: 26px; letter-spacing: 0.05em; color: #222; text-transform: uppercase;">
+                      Miss <span style="font-style: italic; color: #b18c64;">Hastag</span>
+                    </span>
+                  </div>
+                  
+                  ${contentHtml}
+
+                  <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 30px 0;" />
+                  <div style="font-size: 12px; color: #888888; text-align: center; line-height: 1.5;">
+                    <strong>Miss Hastag Boutique</strong><br />
+                    Patan, Lalitpur 44600, Nepal<br />
+                    Contact: +977 9807499247 / +977 9808518972
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+}
+
 export const submitBookingAction = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
@@ -55,79 +130,81 @@ export const submitBookingAction = createServerFn({ method: "POST" })
           },
         });
 
-        // A. Client Confirmation Email
-        const clientMailOptions = {
-          from: `"Miss Hastag" <${emailUser}>`,
-          to: data.email,
-          subject: "Your Styling Session Request - Miss Hastag",
-          html: `
-            <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; border: 1px solid #eaeaea; border-radius: 16px; background-color: #fcfbf9; color: #222;">
-              <h2 style="font-family: Georgia, serif; color: #62101e; border-bottom: 2px solid #62101e; padding-bottom: 15px; margin-top: 0;">Appointment Request Received</h2>
-              <p>Dear ${data.name},</p>
-              <p>Thank you for requesting a styling session with Miss Hastag! We are excited to dress you.</p>
-              <p>Here are your request details:</p>
-              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold; border-bottom: 1px solid #eaeaea; width: 120px;">Name:</td>
-                  <td style="padding: 8px 0; border-bottom: 1px solid #eaeaea;">${data.name}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold; border-bottom: 1px solid #eaeaea;">Phone:</td>
-                  <td style="padding: 8px 0; border-bottom: 1px solid #eaeaea;">${data.phone}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold; border-bottom: 1px solid #eaeaea;">Preferred Date/Notes:</td>
-                  <td style="padding: 8px 0; border-bottom: 1px solid #eaeaea;">${data.message || "None specified"}</td>
-                </tr>
-              </table>
-              <p>Our team will contact you shortly via phone or email to confirm your date and time slot.</p>
-              <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 30px 0;" />
-              <div style="font-size: 12px; color: #666; text-align: center;">
-                <strong>Miss Hastag Boutique</strong><br />
-                Patan, Lalitpur, Nepal<br />
-                Contact: +977 9807499247 / +977 9808518972
-              </div>
-            </div>
-          `,
-        };
+        // A. Client Confirmation Email Html Body
+        const clientEmailBody = `
+          <h3 style="font-family: Georgia, serif; font-size: 20px; color: #222; margin-top: 0; font-weight: normal;">Appointment Request Received</h3>
+          <p style="font-size: 14px; line-height: 1.6; color: #444; margin-bottom: 20px;">
+            Dear ${data.name},<br/><br/>
+            Thank you for requesting a styling session with Miss Hastag! We are excited to dress you.
+          </p>
+          <div style="background-color: #fcfbf9; border: 1px solid #eaeaea; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+            <h4 style="margin-top: 0; font-family: Georgia, serif; font-size: 16px; color: #62101e; border-bottom: 1px solid #eaeaea; padding-bottom: 8px;">Request Details</h4>
+            <table width="100%" class="detail-table" style="font-size: 14px; color: #444; line-height: 1.5;">
+              <tr>
+                <td style="padding: 6px 0; font-weight: 600; width: 140px;">Name:</td>
+                <td style="padding: 6px 0; color: #666;">${data.name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: 600;">Phone:</td>
+                <td style="padding: 6px 0; color: #666;">${data.phone}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: 600;">Preferred Date/Notes:</td>
+                <td style="padding: 6px 0; color: #666;">${data.message || "None specified"}</td>
+              </tr>
+            </table>
+          </div>
+          <p style="font-size: 14px; line-height: 1.6; color: #444; margin-bottom: 0;">
+            Our team will contact you shortly via phone or email to confirm your date and time slot.
+          </p>
+        `;
 
-        // B. Owner Notification Email
-        const ownerMailOptions = {
-          from: `"Miss Hastag Bot" <${emailUser}>`,
-          to: ownerEmail,
-          subject: `New Styling Booking Request from ${data.name}`,
-          html: `
-            <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; border: 1px solid #eaeaea; border-radius: 16px; background-color: #ffffff; color: #222;">
-              <h2 style="font-family: Georgia, serif; color: #222; border-bottom: 2px solid #eaeaea; padding-bottom: 15px; margin-top: 0;">New Booking Notification</h2>
-              <p>Hello Miss Hastag Admin,</p>
-              <p>You have received a new styling session request from the website:</p>
-              <table style="width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #fcfbf9; border-radius: 8px; border: 1px solid #eaeaea;">
-                <tr>
-                  <td style="padding: 12px; font-weight: bold; border-bottom: 1px solid #eaeaea; width: 150px;">Customer Name:</td>
-                  <td style="padding: 12px; border-bottom: 1px solid #eaeaea;">${data.name}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 12px; font-weight: bold; border-bottom: 1px solid #eaeaea;">Email:</td>
-                  <td style="padding: 12px; border-bottom: 1px solid #eaeaea;"><a href="mailto:${data.email}">${data.email}</a></td>
-                </tr>
-                <tr>
-                  <td style="padding: 12px; font-weight: bold; border-bottom: 1px solid #eaeaea;">Phone Number:</td>
-                  <td style="padding: 12px; border-bottom: 1px solid #eaeaea;"><a href="tel:${data.phone}">${data.phone}</a></td>
-                </tr>
-                <tr>
-                  <td style="padding: 12px; font-weight: bold;">Notes/Preferred Time:</td>
-                  <td style="padding: 12px;">${data.message || "None specified"}</td>
-                </tr>
-              </table>
-              <p>Please log in to your dashboard at <a href="https://misshastag.vercel.app/admin">misshastag.vercel.app/admin</a> to confirm or manage this booking.</p>
-            </div>
-          `,
-        };
+        // B. Owner Notification Email Html Body
+        const ownerEmailBody = `
+          <h3 style="font-family: Georgia, serif; font-size: 20px; color: #62101e; margin-top: 0; font-weight: normal;">New Booking Request</h3>
+          <p style="font-size: 14px; line-height: 1.6; color: #444; margin-bottom: 20px;">
+            Hello Admin,<br/><br/>
+            You have received a new styling session request from the website:
+          </p>
+          <div style="background-color: #fcfbf9; border: 1px solid #eaeaea; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+            <table width="100%" class="detail-table" style="font-size: 14px; color: #444; line-height: 1.5;">
+              <tr>
+                <td style="padding: 6px 0; font-weight: 600; width: 140px;">Customer Name:</td>
+                <td style="padding: 6px 0; color: #666;">${data.name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: 600;">Email:</td>
+                <td style="padding: 6px 0; color: #666;"><a href="mailto:${data.email}">${data.email}</a></td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: 600;">Phone:</td>
+                <td style="padding: 6px 0; color: #666;"><a href="tel:${data.phone}">${data.phone}</a></td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: 600;">Notes/Preferred Time:</td>
+                <td style="padding: 6px 0; color: #666;">${data.message || "None specified"}</td>
+              </tr>
+            </table>
+          </div>
+          <p style="font-size: 14px; line-height: 1.6; color: #444; margin-bottom: 0;">
+            Please log in to your dashboard to confirm or manage this booking.
+          </p>
+        `;
 
         // Send both emails in parallel
         await Promise.all([
-          transporter.sendMail(clientMailOptions),
-          transporter.sendMail(ownerMailOptions),
+          transporter.sendMail({
+            from: `"Miss Hastag" <${emailUser}>`,
+            to: data.email,
+            subject: "Your Styling Session Request - Miss Hastag",
+            html: buildResponsiveEmailHtml("Styling Session Request", clientEmailBody),
+          }),
+          transporter.sendMail({
+            from: `"Miss Hastag Bot" <${emailUser}>`,
+            to: ownerEmail,
+            subject: `New Styling Booking Request from ${data.name}`,
+            html: buildResponsiveEmailHtml("New Booking Request", ownerEmailBody),
+          }),
         ]);
 
         console.log("Automated booking emails successfully dispatched.");

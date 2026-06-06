@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { seedDatabaseIfNeeded } from "@/lib/db-seeding";
 import { BookingModal } from "@/components/booking-modal";
+import { OrderModal } from "@/components/order-modal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -25,6 +26,8 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isOrderOpen, setIsOrderOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
   useEffect(() => {
     // Seed initial reviews and products if database is empty
@@ -37,7 +40,12 @@ function Index() {
       <Hero onOpenBooking={() => setIsBookingOpen(true)} />
       <Marquee />
       <Services />
-      <NewArrivals />
+      <NewArrivals 
+        onOpenOrder={(product: any) => {
+          setSelectedProduct(product);
+          setIsOrderOpen(true);
+        }}
+      />
       <Labels />
       <Policies />
       <About />
@@ -45,6 +53,7 @@ function Index() {
       <CTA onOpenBooking={() => setIsBookingOpen(true)} />
       <Footer />
       <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
+      <OrderModal isOpen={isOrderOpen} onClose={() => setIsOrderOpen(false)} product={selectedProduct} />
     </div>
   );
 }
@@ -331,7 +340,7 @@ function Testimonials() {
   );
 }
 
-function NewArrivals() {
+function NewArrivals({ onOpenOrder }: { onOpenOrder: (product: any) => void }) {
   const { data: products, isLoading, error } = useQuery({
     queryKey: ["products"],
     queryFn: async () => {
@@ -399,12 +408,22 @@ function NewArrivals() {
                     </div>
                     <p className="text-muted-foreground text-sm leading-relaxed">{p.description}</p>
                   </div>
-                  <div className="pt-2">
+                  <div className="grid grid-cols-2 gap-2 pt-2">
+                    <button
+                      onClick={() => onOpenOrder({
+                        name: p.name,
+                        price: p.price,
+                        image_url: p.image_url
+                      })}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold py-3 hover:opacity-90 transition cursor-pointer"
+                    >
+                      <ShoppingBag className="w-3.5 h-3.5" /> Order online
+                    </button>
                     <a
                       href="tel:+9779807499247"
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-border hover:bg-accent text-sm font-medium py-3 transition"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-border hover:bg-accent text-xs font-medium py-3 transition text-center"
                     >
-                      <Phone className="w-3.5 h-3.5" /> Call to hold size
+                      <Phone className="w-3.5 h-3.5" /> Call to hold
                     </a>
                   </div>
                 </div>
