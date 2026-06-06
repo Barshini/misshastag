@@ -401,7 +401,7 @@ function NewArrivals() {
                   </div>
                   <div className="pt-2">
                     <a
-                      href="tel:+977"
+                      href="tel:+9779807499247"
                       className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-border hover:bg-accent text-sm font-medium py-3 transition"
                     >
                       <Phone className="w-3.5 h-3.5" /> Call to hold size
@@ -426,7 +426,7 @@ function CTA({ onOpenBooking }: { onOpenBooking: () => void }) {
           <em className="italic text-[color:var(--brand-blush)]">We'd love to dress you.</em>
         </h2>
         <p className="text-primary-foreground/70 text-lg max-w-2xl mx-auto">
-          Visit our boutique in Patan, or book a private styling session with our team online.
+          Visit our boutique in Patan, or book a private styling session with our team online. You can also reach us at +977 9807499247 or +977 9808518972.
         </p>
         <div className="flex flex-wrap justify-center gap-3 pt-2">
           <button
@@ -435,7 +435,7 @@ function CTA({ onOpenBooking }: { onOpenBooking: () => void }) {
           >
             <Sparkles className="w-4 h-4" /> Book styling session
           </button>
-          <a href="tel:+977" className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-7 py-4 text-sm font-medium hover:bg-primary-foreground/10 transition">
+          <a href="tel:+9779807499247" className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-7 py-4 text-sm font-medium hover:bg-primary-foreground/10 transition">
             <Phone className="w-4 h-4" /> Call store
           </a>
           <a href="https://maps.google.com/?q=Miss+Hastag+Lalitpur" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-7 py-4 text-sm font-medium hover:bg-primary-foreground/10 transition">
@@ -469,7 +469,7 @@ function Footer() {
     <footer className="bg-background border-t border-border">
       <div className="max-w-7xl mx-auto px-6 lg:px-10 py-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
         <div className="font-serif text-lg text-foreground">Miss <span className="italic text-[color:var(--brand-clay)]">Hastag</span></div>
-        <div>© {new Date().getFullYear()} Miss Hastag · Clothing boutique in Patan, Lalitpur</div>
+        <div>© {new Date().getFullYear()} Miss Hastag · Clothing boutique in Patan, Lalitpur · +977 9807499247 / +977 9808518972</div>
       </div>
     </footer>
   );

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { submitBookingAction } from "@/lib/booking-actions";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -12,6 +12,7 @@ export function BookingModal({ isOpen, onClose }: BookingModalProps) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
+  const [website, setWebsite] = useState(""); // Honeypot spam protection
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -24,15 +25,19 @@ export function BookingModal({ isOpen, onClose }: BookingModalProps) {
     setErrorMsg("");
 
     try {
-      const { error } = await supabase.from("bookings").insert({
-        customer_name: name,
-        email,
-        phone,
-        message,
-        status: "pending",
+      const response = await submitBookingAction({
+        data: {
+          name,
+          email,
+          phone,
+          message,
+          website,
+        },
       });
 
-      if (error) throw error;
+      if (!response.success) {
+        throw new Error(response.message || "Failed to submit booking request.");
+      }
 
       setIsSuccess(true);
       setTimeout(() => {
@@ -42,6 +47,7 @@ export function BookingModal({ isOpen, onClose }: BookingModalProps) {
         setEmail("");
         setPhone("");
         setMessage("");
+        setWebsite("");
         onClose();
       }, 3000);
     } catch (err: any) {
@@ -123,12 +129,24 @@ export function BookingModal({ isOpen, onClose }: BookingModalProps) {
                   <input
                     type="tel"
                     required
-                    placeholder="+977 98..."
+                    placeholder="+977 9807499247 / +977 9808518972"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-[color:var(--brand-clay)] transition"
                   />
                 </div>
+              </div>
+
+              {/* Honeypot field for bot/spam protection */}
+              <div className="hidden" aria-hidden="true">
+                <input
+                  type="text"
+                  name="website"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
               </div>
 
               <div className="space-y-1">
