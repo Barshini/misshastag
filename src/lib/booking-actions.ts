@@ -4,7 +4,7 @@ import { supabase } from "./supabase";
 import nodemailer from "nodemailer";
 
 export const submitBookingAction = createServerFn({ method: "POST" })
-  .input(
+  .inputValidator(
     z.object({
       name: z.string().min(1),
       email: z.string().email(),
